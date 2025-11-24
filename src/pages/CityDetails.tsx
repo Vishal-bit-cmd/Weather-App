@@ -5,7 +5,7 @@ import ForecastTable from "../components/ForecastTable";
 import { type City } from "../types";
 
 export default function CityDetails() {
-    const { id } = useParams();   
+    const { id } = useParams();
     const [city, setCity] = useState<City | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -37,8 +37,7 @@ export default function CityDetails() {
         try {
             await API.post("/favorites", {
                 name: city.name,
-                country: city.country,
-                forecast: city.forecast
+                country: city.country
             });
 
             alert(`${city.name} added to favorites`);
