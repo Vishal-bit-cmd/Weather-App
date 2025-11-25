@@ -1,5 +1,6 @@
 import { type City } from "../types";
 import API from "../api/api";
+import Cookies from "js-cookie";
 
 interface Props {
     city: City;
@@ -7,11 +8,17 @@ interface Props {
 
 export default function FavoriteButton({ city }: Props) {
     const handleAdd = async () => {
+        const token = Cookies.get("accessToken");
+        if (!token) return alert("Please login first");
+
         try {
-            await API.post("/favorites", city);
+            await API.post("/favorites", {
+                name: city.name,
+                country: city.country
+            });
             alert("Added to favorites!");
-        } catch (err) {
-            alert("Already in favorites or error occurred");
+        } catch (err: any) {
+            alert(err.response?.data?.message || "Failed to add to favorites");
         }
     };
 

@@ -5,61 +5,55 @@ import ForecastTable from "../components/ForecastTable";
 import { type City } from "../types";
 
 export default function CityDetails() {
-    const { id } = useParams();
+    const { name } = useParams();
     const [city, setCity] = useState<City | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchCity = async () => {
+            if (!name) return;
+
             try {
-                let data;
-
-                try {
-                    const res = await API.get(`/cities/${id}`);
-                    data = res.data;
-                } catch {
-                    const res = await API.get(`/favorites/${id}`);
-                    data = res.data;
-                }
-
+                const res = await API.get(`/cities/search?q=${name}`);
+                const data = res.data.city || res.data.cityData || res.data;
                 setCity(data);
-            } catch (err) {
+            } catch {
                 alert("City not found");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (id) fetchCity();
-    }, [id]);
+        fetchCity();
+    }, [name]);
 
-    const addToFavorites = async (city: City) => {
+    const addToFavorites = async () => {
+        if (!city) return;
         try {
             await API.post("/favorites", {
                 name: city.name,
                 country: city.country
             });
-
             alert(`${city.name} added to favorites`);
         } catch (err: any) {
             alert(err.response?.data?.message || "Failed to add favorite");
         }
     };
 
-    if (loading) return <p>Loading...</p>;
-    if (!city) return <p>City not found</p>;
+    if (loading) return <p className="text-center mt-4">Loading...</p>;
+    if (!city) return <p className="text-center mt-4">City not found</p>;
 
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-3xl font-bold mb-4">
                 {city.name}, {city.country}
             </h1>
 
             <ForecastTable forecast={city.forecast} />
 
             <button
-                className="fixed top-18 right-1.5 bg-blue-500 text-white px-4 py-2 rounded shadow-lg"
-                onClick={() => addToFavorites(city)}
+                className="fixed bottom-6 right-6 bg-blue-600 text-white px-5 py-3 rounded-lg shadow-md hover:bg-blue-700"
+                onClick={addToFavorites}
             >
                 Add to Favorites
             </button>

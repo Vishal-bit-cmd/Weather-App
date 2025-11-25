@@ -3,6 +3,7 @@ import API from "../api/api";
 import SearchBar from "../components/SearchBar";
 import CityCard from "../components/CityCard";
 import { Link } from "react-router-dom";
+import Cookies from "js-cookie";
 import { type City } from "../types";
 
 export default function Home() {
@@ -21,12 +22,15 @@ export default function Home() {
     };
 
     useEffect(() => {
+        const token = Cookies.get("accessToken");
+        if (!token) return; // do not fetch before login
+
         const fetchFavs = async () => {
             try {
                 const { data } = await API.get("/favorites");
                 setFavorites(data);
             } catch (err) {
-                console.error("Failed to load favorites:", err);
+                console.error("Failed to load favorites");
             }
         };
         fetchFavs();
@@ -43,6 +47,7 @@ export default function Home() {
                 </div>
             )}
 
+            {/* ⭐ FAVORITES LIST */}
             <h2 className="text-2xl font-bold mt-10 mb-4">⭐ Favorites</h2>
 
             {favorites.length === 0 && (
