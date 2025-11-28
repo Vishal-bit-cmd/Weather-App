@@ -10,7 +10,7 @@ export interface Forecast {
 }
 
 export interface City {
-    _id?: string;
+    _id: string;
     name: string;
     country: string;
     forecast: Forecast[];

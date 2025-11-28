@@ -1,52 +1,60 @@
-import { createContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useEffect, useState, type ReactNode } from "react";
+import api from "../api/api";
 
 interface User {
-    username: string;
+    id: string;
+    name?: string;
+    email?: string;
     role: string;
 }
 
 interface AuthContextType {
     user: User | null;
-    token: string | null;
-    login: (token: string, user: User) => void;
-    logout: () => void;
+    loading: boolean;
+    setUser: (u: User | null) => void;
+    logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
     user: null,
-    token: null,
-    login: () => { },
-    logout: () => { },
+    loading: true,
+    setUser: () => { },
+    logout: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const savedUser = localStorage.getItem("user");
-        const savedToken = localStorage.getItem("token");
-        if (savedUser && savedToken) {
-            setUser(JSON.parse(savedUser));
-            setToken(savedToken);
-        }
+        const loadUser = async () => {
+            try {
+                const res = await api.get("/auth/profile", { withCredentials: true });
+                setUser(res.data.user);
+            } catch (err) {
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadUser();
     }, []);
 
-    const login = (token: string, user: User) => {
-        setUser(user);
-        setToken(token);
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-    };
-
-    const logout = () => {
-        setUser(null);
-        setToken(null);
-        localStorage.clear();
+    const logout = async () => {
+        try {
+            await api.get("/auth/logout", { withCredentials: true }); // send cookies
+            setUser(null);
+            window.location.href = "/login"; // redirect after logout
+        } catch (err) {
+            console.error("Logout failed:", err);
+            setUser(null);
+            window.location.href = "/login";
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, setUser, loading, logout }}>
             {children}
         </AuthContext.Provider>
     );

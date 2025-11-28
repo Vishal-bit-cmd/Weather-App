@@ -1,40 +1,35 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import Cookies from "js-cookie";
-import Navbar from "./components/NavBar";
+import { useContext } from "react";
 
+import Navbar from "./components/NavBar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
 import FavoritesPage from "./pages/Favorites";
 import CityDetails from "./pages/CityDetails";
-import AdminUsers from "./pages/AdminUsers";
+import AdminUsers from "./pages/AdminHome";
+import { AuthContext, AuthProvider } from "./context/AuthContext";
 
 export default function App() {
-    const [accessToken, setAccessToken] = useState(Cookies.get("accessToken") || null);
-    const [user, setUser] = useState(Cookies.get("user") ? JSON.parse(Cookies.get("user")!) : null);
+    return (
+        <AuthProvider>
+            <RouterWithAuth />
+        </AuthProvider>
+    );
+}
 
-    // Watch cookies to update login/logout state dynamically
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const token = Cookies.get("accessToken");
-            setAccessToken(token || null);
+function RouterWithAuth() {
+    const { user, loading } = useContext(AuthContext);
 
-            const usr = Cookies.get("user");
-            setUser(usr ? JSON.parse(usr) : null);
-        }, 200);
-
-        return () => clearInterval(interval);
-    }, []);
+    if (loading) return <p className="p-6 text-center">Loading...</p>;
 
     return (
         <BrowserRouter>
-            {/* Navbar visible only if logged in */}
-            {accessToken && <Navbar />}
+            {user && <Navbar />}
 
             <Routes>
-                {/* PUBLIC ROUTES */}
-                {!accessToken && (
+
+                {!user && (
                     <>
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
@@ -42,21 +37,19 @@ export default function App() {
                     </>
                 )}
 
-                {/* LOGGED-IN ROUTES */}
-                {accessToken && (
+                {user && user.role !== "admin" && (
                     <>
                         <Route path="/" element={<Home />} />
                         <Route path="/favorites" element={<FavoritesPage />} />
                         <Route path="/city/:name" element={<CityDetails />} />
-
-                        {/* Admin-only routes */}
-                        {user?.role === "admin" && (
-                            <>
-                                <Route path="/admin/users" element={<AdminUsers />} />
-                            </>
-                        )}
-
                         <Route path="*" element={<Navigate to="/" replace />} />
+                    </>
+                )}
+
+                {user && user.role === "admin" && (
+                    <>
+                        <Route path="/admin/users" element={<AdminUsers />} />
+                        <Route path="*" element={<Navigate to="/admin/users" replace />} />
                     </>
                 )}
             </Routes>

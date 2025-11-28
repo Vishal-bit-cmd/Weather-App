@@ -1,5 +1,6 @@
-import type { JSX } from "react";
+import { type JSX } from "react";
 import { Navigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 interface Props {
     children: JSX.Element;
@@ -7,14 +8,12 @@ interface Props {
 }
 
 export default function ProtectedRoute({ children, role }: Props) {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user")
-        ? JSON.parse(localStorage.getItem("user")!)
-        : null;
+    const token = Cookies.get("accessToken");
+    const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")!) : null;
 
-    if (!token) return <Navigate to="/login" />;
+    if (!token || !user) return <Navigate to="/login" replace />;
 
-    if (role && user.role !== role) return <Navigate to="/" />;
+    if (role && user.role !== role) return <Navigate to="/" replace />;
 
     return children;
 }
