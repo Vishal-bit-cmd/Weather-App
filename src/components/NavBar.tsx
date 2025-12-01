@@ -22,7 +22,7 @@ export default function Navbar() {
                     {user.name} ({user.role})
                 </span>
 
-                <button
+                <button type="submit"
                     onClick={logout}
                     className="bg-red-500 px-4 py-1 rounded hover:bg-red-600"
                 >

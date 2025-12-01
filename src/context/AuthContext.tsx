@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const logout = async () => {
         try {
-            await api.get("/auth/logout", { withCredentials: true }); // send cookies
+            await api.post("/auth/logout", { withCredentials: true }); // send cookies
             setUser(null);
             window.location.href = "/login"; // redirect after logout
         } catch (err) {
